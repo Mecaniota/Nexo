@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo — Ouça qualquer idioma.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ========================
+   CSS VARIABLES & RESET
+======================== */
+:root {
+  --black: #050508;
+  --deep: #080b14;
+  --surface: #0d1120;
+  --glass: rgba(13,17,32,0.7);
+  --blue: #2979ff;
+  --blue-bright: #5eabff;
+  --cyan: #00e5ff;
+  --purple: #7c4dff;
+  --purple-soft: #b388ff;
+  --white: #f0f4ff;
+  --white-dim: rgba(240,244,255,0.55);
+  --neon-glow: 0 0 18px rgba(41,121,255,0.55), 0 0 40px rgba(41,121,255,0.2);
+  --cyan-glow: 0 0 18px rgba(0,229,255,0.5), 0 0 40px rgba(0,229,255,0.15);
+  --purple-glow: 0 0 18px rgba(124,77,255,0.5);
+  --border: rgba(94,171,255,0.15);
+  --border-bright: rgba(94,171,255,0.35);
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ========================
+   CUSTOM CURSOR
+======================== */
+#cursor {
+  position: fixed; width: 12px; height: 12px;
+  background: var(--cyan); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  position: fixed; width: 36px; height: 36px;
+  border: 1px solid rgba(0,229,255,0.5);
+  border-radius: 50%; pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.18s ease, width 0.3s, height 0.3s;
+}
+a:hover ~ #cursor, button:hover ~ #cursor { transform: translate(-50%,-50%) scale(2.5); }
+
+/* ========================
+   CANVAS BACKGROUND
+======================== */
+#bg-canvas {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+/* ========================
+   NAVBAR
+======================== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: rgba(5,5,8,0.6);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem; font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--blue-bright), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-logo span { color: var(--purple-soft); -webkit-text-fill-color: var(--purple-soft); }
+.nav-links { display: flex; gap: 36px; align-items: center; }
+.nav-links a {
+  font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--white-dim); text-decoration: none;
+  transition: color var(--transition);
+}
+.nav-links a:hover { color: var(--cyan); }
+.nav-cta {
+  padding: 10px 22px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: white !important; font-size: 0.82rem !important;
+  box-shadow: var(--neon-glow);
+  transition: box-shadow var(--transition), transform var(--transition) !important;
+}
+.nav-cta:hover { box-shadow: var(--cyan-glow); transform: scale(1.04) !important; }
+.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+.hamburger span { width: 24px; height: 2px; background: var(--cyan); border-radius: 2px; transition: var(--transition); }
+
+/* ========================
+   HERO SECTION
+======================== */
+#hero {
+  min-height: 100vh; position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 120px 24px 80px;
+  overflow: hidden;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 999px;
+  border: 1px solid rgba(0,229,255,0.3);
+  background: rgba(0,229,255,0.06);
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--cyan); letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 28px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-badge::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cyan); animation: pulse-dot 1.6s ease infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.hero-title {
+  font-family: var(--font-display); font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 800; line-height: 1.02; letter-spacing: -0.04em;
+  margin-bottom: 18px;
+  animation: fadeUp 0.8s 0.15s ease both;
+}
+.hero-title .line1 { display: block; color: var(--white); }
+.hero-title .line2 {
+  display: block;
+  background: linear-gradient(110deg, var(--blue-bright) 0%, var(--cyan) 50%, var(--purple-soft) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-size: 200% auto; animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+.hero-slogan {
+  font-family: var(--font-display); font-size: clamp(1.1rem, 2.5vw, 1.7rem);
+  font-weight: 600; color: var(--white-dim); margin-bottom: 16px;
+  animation: fadeUp 0.8s 0.25s ease both;
+}
+.hero-desc {
+  max-width: 560px; font-size: 1rem; line-height: 1.7;
+  color: rgba(240,244,255,0.45); margin-bottom: 40px;
+  animation: fadeUp 0.8s 0.35s ease both;
+}
+.hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.8s 0.45s ease both; }
+.btn-primary {
+  padding: 15px 36px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: white; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
+  border: none; cursor: none; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: var(--neon-glow);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.btn-primary:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 32px rgba(41,121,255,0.7), 0 0 80px rgba(41,121,255,0.25); }
+.btn-secondary {
+  padding: 15px 36px; border-radius: 999px;
+  background: transparent; color: var(--white-dim);
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+  border: 1px solid var(--border-bright); cursor: none; text-decoration: none;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+.btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.05); }
+
+/* Floating device illustration */
+.hero-device {
+  margin-top: 60px; position: relative; animation: fadeUp 0.8s 0.55s ease both;
+}
+.device-svg { filter: drop-shadow(0 0 40px rgba(41,121,255,0.5)) drop-shadow(0 0 80px rgba(124,77,255,0.25)); animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+.device-rings {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(41,121,255,0.2);
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+.ring:nth-child(1) { width: 200px; height: 200px; top: -100px; left: -100px; animation-delay: 0s; }
+.ring:nth-child(2) { width: 300px; height: 300px; top: -150px; left: -150px; animation-delay: 0.6s; }
+.ring:nth-child(3) { width: 420px; height: 420px; top: -210px; left: -210px; animation-delay: 1.2s; }
+@keyframes ring-pulse {
+  0%,100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.03); }
+}
+
+/* ========================
+   SECTION BASE
+======================== */
+section { position: relative; z-index: 1; }
+.section-label {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.section-sub { font-size: 1rem; color: rgba(240,244,255,0.5); max-width: 540px; line-height: 1.7; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-pad { padding: 120px 0; }
+
+/* ========================
+   GLASSMORPHISM CARD
+======================== */
+.glass-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(24px);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.glass-card:hover { border-color: var(--border-bright); box-shadow: 0 0 32px rgba(41,121,255,0.08); }
+
+/* ========================
+   FORM SECTION
+======================== */
+#config { background: linear-gradient(180deg, var(--black) 0%, var(--deep) 100%); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group.full { grid-column: 1/-1; }
+.form-group label {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--blue-bright);
+}
+.form-group input, .form-group select {
+  background: rgba(13,17,32,0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--white); padding: 14px 16px;
+  font-family: var(--font-body); font-size: 0.95rem;
+  outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+  appearance: none; -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--blue); box-shadow: 0 0 0 3px rgba(41,121,255,0.15);
+}
+.form-group input::placeholder { color: rgba(240,244,255,0.25); }
+.select-wrapper { position: relative; }
+.select-wrapper::after {
+  content: '▾'; position: absolute; right: 16px; top: 50%;
+  transform: translateY(-50%); color: var(--cyan); pointer-events: none;
+}
+/* Radio/option cards */
+.option-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.option-card {
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: rgba(13,17,32,0.5);
+  color: var(--white-dim); font-size: 0.85rem; cursor: none;
+  transition: var(--transition); user-select: none;
+}
+.option-card:hover { border-color: var(--blue-bright); color: var(--white); }
+.option-card.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.07); box-shadow: var(--cyan-glow); }
+/* Checkbox */
+.consent-box {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: rgba(41,121,255,0.06); border: 1px solid rgba(41,121,255,0.2);
+  border-radius: var(--radius-sm); padding: 16px;
+}
+.consent-box input[type="checkbox"] {
+  width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--blue);
+  margin-top: 2px; cursor: none;
+}
+.consent-box p { font-size: 0.85rem; color: var(--white-dim); line-height: 1.6; }
+.form-submit { text-align: center; margin-top: 8px; }
+.form-success {
+  display: none; margin-top: 16px;
+  background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.25);
+  border-radius: var(--radius-sm); padding: 14px 20px;
+  font-family: var(--font-mono); font-size: 0.82rem; color: var(--cyan); text-align: center;
+}
+
+/* ========================
+   LANGUAGE SECTION
+======================== */
+#languages { background: var(--deep); }
+.lang-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-top: 48px; }
+.lang-card {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 24px 16px; border-radius: var(--radius); cursor: none;
+  border: 1px solid var(--border); background: rgba(13,17,32,0.6);
+  transition: var(--transition); position: relative; overflow: hidden; user-select: none;
+}
+.lang-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(41,121,255,0.12), rgba(124,77,255,0.08));
+  opacity: 0; transition: opacity var(--transition);
+}
+.lang-card:hover::before { opacity: 1; }
+.lang-card:hover { border-color: var(--border-bright); transform: translateY(-3px); }
+.lang-card.selected {
+  border-color: var(--cyan); background: rgba(0,229,255,0.06);
+  box-shadow: var(--cyan-glow), inset 0 0 20px rgba(0,229,255,0.05);
+}
+.lang-card.selected::after {
+  content: '✓'; position: absolute; top: 10px; right: 12px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--cyan); color: var(--black);
+  font-size: 0.7rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.lang-flag { font-size: 2.4rem; }
+.lang-name { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; }
+.lang-native { font-family: var(--font-mono); font-size: 0.7rem; color: var(--white-dim); }
+.lang-save { text-align: center; margin-top: 32px; }
+.save-notice {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--white-dim);
+  margin-top: 12px; display: block;
+}
+
+/* ========================
+   AI DASHBOARD
+======================== */
+#dashboard { background: var(--black); }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
+.dash-wide { grid-column: 1/-1; }
+.status-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 999px;
+  background: rgba(13,17,32,0.8); border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 0.75rem;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--white-dim);
+}
+.status-dot.listening { background: var(--cyan); animation: pulse-dot 1.2s ease infinite; }
+.status-dot.translating { background: var(--purple-soft); animation: pulse-dot 0.8s ease infinite; }
+.status-dot.learning { background: #ffea00; animation: pulse-dot 2s ease infinite; }
+/* Lang indicators */
+.lang-bridge {
+  display: flex; align-items: center; gap: 16px; padding: 28px;
+}
+.lang-block { flex: 1; text-align: center; }
+.lang-block-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em; color: var(--white-dim); margin-bottom: 8px; text-transform: uppercase; }
+.lang-block-value { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; }
+.lang-block-value.detected { color: var(--cyan); }
+.lang-block-value.translated { color: var(--purple-soft); }
+.lang-arrow {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: var(--white-dim);
+}
+.arrow-line { width: 60px; height: 1px; background: linear-gradient(90deg, var(--cyan), var(--purple)); position: relative; }
+.arrow-line::after { content: '›'; position: absolute; right: -8px; top: -10px; color: var(--purple-soft); font-size: 1.1rem; }
+/* Waveform */
+.waveform { display: flex; align-items: center; gap: 3px; height: 48px; padding: 0 20px; }
+.waveform .bar {
+  width: 4px; border-radius: 2px; background: linear-gradient(180deg, var(--cyan), var(--blue));
+  animation: wave 1.2s ease-in-out infinite;
+}
+.waveform .bar:nth-child(2n) { animation-duration: 0.9s; }
+.waveform .bar:nth-child(3n) { animation-duration: 1.5s; }
+@keyframes wave {
+  0%,100% { height: 8px; opacity: 0.4; }
+  50% { height: 38px; opacity: 1; }
+}
+/* Stats */
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.stat-item { padding: 20px; text-align: center; }
+.stat-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, var(--blue-bright), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.stat-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--white-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+/* History */
+.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto; padding-right: 4px; }
+.history-list::-webkit-scrollbar { width: 4px; }
+.history-list::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+.history-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  background: rgba(13,17,32,0.6); border: 1px solid var(--border);
+  font-size: 0.85rem; animation: slideIn 0.4s ease both;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+.history-lang { font-family: var(--font-mono); font-size: 0.65rem; color: var(--cyan); min-width: 28px; padding-top: 2px; }
+.history-text { color: var(--white-dim); line-height: 1.5; }
+.history-translation { color: var(--purple-soft); margin-top: 3px; font-size: 0.82rem; }
+/* Processing indicator */
+.ai-processing {
+  display: flex; align-items: center; gap: 16px; padding: 20px 28px;
+}
+.ai-orb {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: radial-gradient(circle, var(--purple) 0%, var(--blue) 60%, transparent 100%);
+  animation: orb-pulse 2s ease-in-out infinite;
+  position: relative; flex-shrink: 0;
+}
+.ai-orb::before {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid rgba(124,77,255,0.4);
+  animation: orb-ring 2s ease-in-out infinite;
+}
+@keyframes orb-pulse { 0%,100% { box-shadow: 0 0 20px rgba(124,77,255,0.5); transform: scale(1); } 50% { box-shadow: 0 0 40px rgba(124,77,255,0.8); transform: scale(1.07); } }
+@keyframes orb-ring { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.3); opacity: 0; } }
+.ai-text h4 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+.ai-text p { font-family: var(--font-mono); font-size: 0.72rem; color: var(--white-dim); }
+#ai-status-text { color: var(--cyan); }
+
+/* ========================
+   SLANG LEARNING
+======================== */
+#slang { background: var(--deep); }
+.slang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
+.slang-list { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+.slang-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: rgba(13,17,32,0.5);
+  animation: slideIn 0.4s ease both;
+}
+.slang-word { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--cyan); }
+.slang-meaning { font-size: 0.8rem; color: var(--white-dim); margin-top: 2px; }
+.slang-badge {
+  font-family: var(--font-mono); font-size: 0.65rem; padding: 4px 10px;
+  border-radius: 999px; background: rgba(124,77,255,0.15);
+  border: 1px solid rgba(124,77,255,0.3); color: var(--purple-soft);
+}
+.learning-indicator {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 24px; align-items: flex-start;
+}
+.learn-bar-wrap { width: 100%; }
+.learn-bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--white-dim); }
+.learn-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.learn-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--blue), var(--cyan)); animation: grow var(--dur, 2s) ease both; }
+@keyframes grow { from { width: 0; } to { width: var(--target, 80%); } }
+.phrase-feed { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.phrase-item { padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(13,17,32,0.6); border: 1px solid var(--border); font-size: 0.82rem; color: var(--white-dim); animation: slideIn 0.4s ease both; }
+.phrase-item span { color: var(--purple-soft); }
+
+/* ========================
+   FOOTER
+======================== */
+footer {
+  position: relative; z-index: 1;
+  background: var(--black); border-top: 1px solid var(--border);
+  padding: 64px 0 32px;
+}
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-brand .nav-logo { font-size: 1.5rem; margin-bottom: 14px; display: block; }
+.footer-brand p { font-size: 0.85rem; color: rgba(240,244,255,0.35); line-height: 1.7; max-width: 280px; }
+.footer-col h5 { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; margin-bottom: 16px; color: var(--white); }
+.footer-col a { display: block; font-size: 0.82rem; color: rgba(240,244,255,0.4); text-decoration: none; margin-bottom: 10px; transition: color var(--transition); }
+.footer-col a:hover { color: var(--cyan); }
+.social-links { display: flex; gap: 12px; margin-top: 20px; }
+.social-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(13,17,32,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; text-decoration: none; color: var(--white-dim);
+  transition: var(--transition);
+}
+.social-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); }
+.footer-bottom {
+  border-top: 1px solid var(--border); padding-top: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 0.7rem; color: rgba(240,244,255,0.25);
+}
+.academic-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  border: 1px solid rgba(255,234,0,0.25); background: rgba(255,234,0,0.04);
+  font-family: var(--font-mono); font-size: 0.68rem; color: rgba(255,234,0,0.6);
+}
+
+/* ========================
+   ANIMATIONS & UTILS
+======================== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+.glow-divider {
+  height: 1px; width: 100%; margin: 0;
+  background: linear-gradient(90deg, transparent 0%, var(--blue) 30%, var(--cyan) 50%, var(--purple) 70%, transparent 100%);
+  opacity: 0.3;
+}
+
+/* ========================
+   MOBILE
+======================== */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; flex-direction: column; position: fixed; inset: 0; background: rgba(5,5,8,0.97); justify-content: center; align-items: center; gap: 28px; z-index: 99; }
+  .nav-links.open { display: flex; }
+  .nav-links a { font-size: 1.2rem; }
+  .hamburger { display: flex; z-index: 100; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .dash-wide { grid-column: 1; }
+  .stat-row { grid-template-columns: repeat(3,1fr); }
+  .slang-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  .lang-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); }
+  body { cursor: auto; }
+  #cursor, #cursor-ring { display: none; }
+}
+@media (max-width: 480px) {
+  .stat-row { grid-template-columns: 1fr; }
+  .lang-bridge { flex-direction: column; }
+  .arrow-line { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">Nexo<span> intra</span> cefálico</div>
+  <div class="nav-links" id="nav-links">
+    <a href="#config">Configuração</a>
+    <a href="#languages">Idiomas</a>
+    <a href="#dashboard">Dashboard IA</a>
+    <a href="#slang">Aprendizado</a>
+    <a href="#config" class="nav-cta">Começar →</a>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge">● Tecnologia Do Futuro Na Sua Mão</div>
+  <h1 class="hero-title">
+    <span class="line1">Nexo intra-cefálico</span>
+    <span class="line2">AI</span>
+  </h1>
+  <p class="hero-slogan">Ouça qualquer idioma. Entenda qualquer pessoa.</p>
+  <p class="hero-desc">Um aparelho auditivo inteligente capaz de traduzir conversas em tempo real utilizando Inteligência Artificial. Comunicação sem fronteiras, direto no seu ouvido.</p>
+  <div class="hero-actions">
+    <a href="#config" class="btn-primary">Iniciar Configuração →</a>
+    <a href="#dashboard" class="btn-secondary">Ver Demo da IA</a>
+  </div>
+  <div class="hero-device">
+    <div class="device-rings">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+    </div>
+    <!-- SVG device illustration -->
+    <svg class="device-svg" width="220" height="260" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Body -->
+      <ellipse cx="110" cy="148" rx="52" ry="80" fill="url(#bodyGrad)" stroke="url(#strokeGrad)" stroke-width="1.5"/>
+      <!-- Shine -->
+      <ellipse cx="95" cy="100" rx="12" ry="24" fill="rgba(255,255,255,0.07)" transform="rotate(-15 95 100)"/>
+      <!-- Speaker grille -->
+      <g opacity="0.6">
+        <line x1="90" y1="150" x2="130" y2="150" stroke="#5eabff" stroke-width="1" stroke-linecap="round"/>
+        <line x1="88" y1="158" x2="132" y2="158" stroke="#5eabff" stroke-width="1" stroke-linecap="round"/>
+        <line x1="90" y1="166" x2="130" y2="166" stroke="#5eabff" stroke-width="1" stroke-linecap="round"/>
+        <line x1="93" y1="174" x2="127" y2="174" stroke="#5eabff" stroke-width="0.8" stroke-linecap="round"/>
+      </g>
+      <!-- Mic indicator -->
+      <circle cx="110" cy="118" r="14" fill="url(#micGrad)" opacity="0.9"/>
+      <circle cx="110" cy="118" r="8" fill="rgba(0,229,255,0.2)"/>
+      <circle cx="110" cy="118" r="4" fill="var(--cyan)"/>
+      <circle cx="110" cy="118" r="14" stroke="rgba(0,229,255,0.4)" stroke-width="1.5" fill="none"/>
+      <!-- Earpiece hook -->
+      <path d="M 158 130 Q 185 120 182 88 Q 179 60 160 52" stroke="url(#hookGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- Button -->
+      <rect x="62" y="130" width="10" height="24" rx="5" fill="url(#btnGrad)" stroke="rgba(94,171,255,0.3)" stroke-width="1"/>
+      <!-- LED -->
+      <circle cx="67" cy="105" r="4" fill="var(--cyan)" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.6s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Logo text -->
+      <text x="110" y="210" font-family="Syne, sans-serif" font-size="8" font-weight="800" fill="rgba(94,171,255,0.7)" text-anchor="middle" letter-spacing="2">ECHO AI</text>
+      <defs>
+        <linearGradient id="bodyGrad" x1="60" y1="68" x2="162" y2="228" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#1a2240"/>
+          <stop offset="100%" stop-color="#0d1120"/>
+        </linearGradient>
+        <linearGradient id="strokeGrad" x1="60" y1="68" x2="162" y2="228" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#5eabff"/>
+          <stop offset="100%" stop-color="#7c4dff"/>
+        </linearGradient>
+        <linearGradient id="hookGrad" x1="158" y1="130" x2="160" y2="52" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#5eabff"/>
+          <stop offset="100%" stop-color="#7c4dff"/>
+        </linearGradient>
+        <radialGradient id="micGrad" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="rgba(0,229,255,0.4)"/>
+          <stop offset="100%" stop-color="rgba(41,121,255,0.1)"/>
+        </radialGradient>
+        <linearGradient id="btnGrad" x1="62" y1="130" x2="72" y2="154" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#5eabff"/>
+          <stop offset="100%" stop-color="#7c4dff"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- CONFIG FORM -->
+<section id="config" class="section-pad">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">// 01 — Personalização</p>
+      <h2 class="section-title">Configuração Inicial</h2>
+      <p class="section-sub">Personalize o Nexo intra-cefálico de acordo com suas preferências para a melhor experiência de tradução.</p>
+    </div>
+    <div class="glass-card reveal" style="padding:36px; margin-top:40px;">
+      <form id="config-form" novalidate>
+        <div class="form-grid">
+
+          <div class="form-group full">
+            <label>Nome completo</label>
+            <input type="text" id="user-name" placeholder="Como prefere ser chamado?" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>Idioma principal</label>
+            <div class="select-wrapper">
+              <select id="primary-lang">
+                <option value="">Selecione seu idioma…</option>
+                <option>Português</option><option>Inglês</option><option>Espanhol</option>
+                <option>Francês</option><option>Japonês</option><option>Coreano</option>
+                <option>Alemão</option><option>Italiano</option><option>Russo</option><option>Chinês</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Preferência de sotaque</label>
+            <div class="select-wrapper">
+              <select id="accent-pref">
+                <option value="">Selecione o sotaque…</option>
+                <option>Neutro / Padrão</option><option>Britânico</option><option>Americano</option>
+                <option>Brasileiro</option><option>Europeu</option><option>Latino</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Tipo de voz preferida</label>
+            <div class="option-group">
+              <div class="option-card active" data-group="voice" data-val="masculina" onclick="selectOption(this)">🎙️ Masculina</div>
+              <div class="option-card" data-group="voice" data-val="feminina" onclick="selectOption(this)">🎤 Feminina</div>
+              <div class="option-card" data-group="voice" data-val="neutra" onclick="selectOption(this)">🔊 Neutra</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Velocidade da tradução</label>
+            <div class="option-group">
+              <div class="option-card" data-group="speed" data-val="normal" onclick="selectOption(this)">⏱ Normal</div>
+              <div class="option-card active" data-group="speed" data-val="rapida" onclick="selectOption(this)">⚡ Rápida</div>
+              <div class="option-card" data-group="speed" data-val="instantanea" onclick="selectOption(this)">🚀 Instantânea</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <div class="consent-box">
+              <input type="checkbox" id="consent" checked>
+              <p>Permito que a IA utilize minhas conversas <strong>anonimamente</strong> para aprender gírias, expressões populares e melhorar continuamente as traduções. Nenhum dado pessoal identificável será armazenado ou compartilhado com terceiros. Você pode revogar este consentimento a qualquer momento nas configurações.</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="form-submit">
+          <button type="button" class="btn-primary" onclick="savePreferences()" style="cursor:none;">💾 Salvar Preferências</button>
+          <div class="form-success" id="form-success">✓ Preferências salvas com sucesso! O Nexo intra-cefálico está pronto.</div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- LANGUAGE SELECTOR -->
+<section id="languages" class="section-pad">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">// 02 — Idiomas</p>
+      <h2 class="section-title">Escolha os Idiomas</h2>
+      <p class="section-sub">Selecione todos os idiomas que deseja entender e traduzir. Múltipla seleção disponível.</p>
+    </div>
+    <div class="lang-grid reveal">
+      <!-- Cards gerados pelo JS -->
+    </div>
+    <div class="lang-save reveal">
+      <button class="btn-primary" onclick="saveLanguages()" style="cursor:none;">🌐 Salvar Idiomas Selecionados</button>
+      <span class="save-notice" id="lang-save-notice"></span>
+    </div>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- AI DASHBOARD -->
+<section id="dashboard" class="section-pad">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">// 03 — Painel de Controle</p>
+      <h2 class="section-title">Dashboard da IA</h2>
+      <p class="section-sub">Visualize o processamento em tempo real, histórico de traduções e status da inteligência artificial.</p>
+    </div>
+
+    <!-- Status Row -->
+    <div class="status-row reveal" style="margin-top:40px;">
+      <div class="status-pill"><div class="status-dot listening"></div> Escutando</div>
+      <div class="status-pill"><div class="status-dot translating"></div> Traduzindo</div>
+      <div class="status-pill"><div class="status-dot learning"></div> Aprendendo gírias</div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- Lang bridge -->
+      <div class="glass-card reveal">
+        <div style="padding:20px 28px 12px; border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Tradução ativa</div>
+        </div>
+        <div class="lang-bridge">
+          <div class="lang-block">
+            <div class="lang-block-label">Detectado</div>
+            <div class="lang-block-value detected" id="detected-lang">Inglês</div>
+            <div style="font-size:2rem;margin-top:6px;">🇺🇸</div>
+          </div>
+          <div class="lang-arrow">
+            <div class="arrow-line"></div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--white-dim);margin-top:8px;">IA</div>
+          </div>
+          <div class="lang-block">
+            <div class="lang-block-label">Traduzindo para</div>
+            <div class="lang-block-value translated" id="translated-lang">Português</div>
+            <div style="font-size:2rem;margin-top:6px;">🇧🇷</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 16px;">
+          <button class="btn-secondary" onclick="swapLangs()" style="width:100%;cursor:none;font-size:0.82rem;padding:10px;">⇄ Inverter idiomas</button>
+        </div>
+      </div>
+
+      <!-- AI Processor -->
+      <div class="glass-card reveal">
+        <div style="padding:20px 28px 12px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Processador IA</div>
+        </div>
+        <div class="ai-processing">
+          <div class="ai-orb"></div>
+          <div class="ai-text">
+            <h4>Nexo intra-cefálico v3.1</h4>
+            <p>Status: <span id="ai-status-text">Escutando áudio...</span></p>
+            <p style="margin-top:6px;">Latência: <span style="color:var(--cyan)">~18ms</span></p>
+          </div>
+        </div>
+        <!-- Waveform -->
+        <div class="waveform" id="waveform">
+          <!-- bars gerados pelo JS -->
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="glass-card reveal">
+        <div style="padding:20px 28px 12px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Estatísticas da sessão</div>
+        </div>
+        <div class="stat-row" style="padding:20px;">
+          <div class="stat-item">
+            <div class="stat-num" id="stat-idiomas">10</div>
+            <div class="stat-label">Idiomas aprendidos</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-traducoes">0</div>
+            <div class="stat-label">Traduções</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-girias">24</div>
+            <div class="stat-label">Gírias capturadas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="glass-card reveal dash-wide">
+        <div style="padding:20px 28px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Histórico de traduções</div>
+          <button onclick="clearHistory()" style="background:none;border:none;color:var(--white-dim);font-size:0.72rem;cursor:none;font-family:var(--font-mono);">limpar</button>
+        </div>
+        <div style="padding:16px 20px;">
+          <div class="history-list" id="history-list">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- SLANG LEARNING -->
+<section id="slang" class="section-pad">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">// 04 — Aprendizado Contínuo</p>
+      <h2 class="section-title">Sistema de Gírias & IA</h2>
+      <p class="section-sub">A IA detecta e aprende automaticamente expressões populares, gírias e padrões de fala para traduções cada vez mais naturais.</p>
+    </div>
+
+    <div class="slang-grid">
+      <!-- Slang list -->
+      <div class="glass-card reveal">
+        <div style="padding:20px 28px 12px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Novas expressões aprendidas</div>
+        </div>
+        <div style="padding:16px 20px;">
+          <div class="slang-list" id="slang-list"></div>
+        </div>
+      </div>
+
+      <!-- Learning bars + phrase feed -->
+      <div class="glass-card reveal">
+        <div style="padding:20px 28px 12px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;">Progresso de aprendizado</div>
+        </div>
+        <div class="learning-indicator">
+          <div class="learn-bar-wrap">
+            <div class="learn-bar-label"><span>Vocabulário informal</span><span>87%</span></div>
+            <div class="learn-bar"><div class="learn-bar-fill" style="--target:87%;--dur:2.2s"></div></div>
+          </div>
+          <div class="learn-bar-wrap">
+            <div class="learn-bar-label"><span>Expressões regionais</span><span>64%</span></div>
+            <div class="learn-bar"><div class="learn-bar-fill" style="--target:64%;--dur:2.8s;background:linear-gradient(90deg,var(--purple),var(--purple-soft))"></div></div>
+          </div>
+          <div class="learn-bar-wrap">
+            <div class="learn-bar-label"><span>Gírias populares</span><span>92%</span></div>
+            <div class="learn-bar"><div class="learn-bar-fill" style="--target:92%;--dur:2.5s;background:linear-gradient(90deg,var(--cyan),#00b8d4)"></div></div>
+          </div>
+          <div class="learn-bar-wrap">
+            <div class="learn-bar-label"><span>Padrões de fala</span><span>78%</span></div>
+            <div class="learn-bar"><div class="learn-bar-fill" style="--target:78%;--dur:3s;background:linear-gradient(90deg,#7c4dff,#2979ff)"></div></div>
+          </div>
+
+          <div style="width:100%;margin-top:8px;">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--white-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Frases analisadas recentemente</div>
+            <div class="phrase-feed" id="phrase-feed"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="nav-logo">Nexo<span style="-webkit-text-fill-color:var(--purple-soft)"> intra</span> cefálico</span>
+        <p>Projeto acadêmico desenvolvido para demonstrar o conceito de tradução auditiva em tempo real com Inteligência Artificial. Sem fins comerciais.</p>
+        <div class="social-links">
+          <a class="social-btn" href="#" title="GitHub">⌥</a>
+          <a class="social-btn" href="#" title="LinkedIn">in</a>
+          <a class="social-btn" href="#" title="Twitter">𝕏</a>
+          <a class="social-btn" href="#" title="Instagram">◑</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Navegação</h5>
+        <a href="#hero">Início</a>
+        <a href="#config">Configuração</a>
+        <a href="#languages">Idiomas</a>
+        <a href="#dashboard">Dashboard IA</a>
+        <a href="#slang">Aprendizado</a>
+      </div>
+      <div class="footer-col">
+        <h5>Projeto</h5>
+        <a href="#">Documentação</a>
+        <a href="#">Sobre a tecnologia</a>
+        <a href="#">Política de privacidade</a>
+        <a href="#">Consentimento de dados</a>
+        <a href="#">Contato</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>
+        <div>© 2026 Nexo intra-cefálico — Faculdade de Analise e Desenvolvimento De Sistemas (ADS)</div>
+        <div style="margin-top:4px;">Desenvolvido por: Tauã Henrique — Curso de Analise e Desenvolvimentos De Sistemas </div>
+      </div>
+      <div class="academic-badge">⚠ Projeto acadêmico sem fins comerciais</div>
+    </div>
+  </div>
+</footer>
+
+<!-- JAVASCRIPT -->
+<script>
+/* ========================
+   CURSOR
+======================== */
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  setTimeout(() => {
+    cursorRing.style.left = e.clientX + 'px';
+    cursorRing.style.top = e.clientY + 'px';
+  }, 60);
+});
+document.querySelectorAll('a,button,.option-card,.lang-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.transform = 'translate(-50%,-50%) scale(2.5)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform = 'translate(-50%,-50%) scale(1)'; });
+});
+
+/* ========================
+   CANVAS PARTICLES
+======================== */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+function Particle() {
+  this.x = Math.random() * canvas.width;
+  this.y = Math.random() * canvas.height;
+  this.size = Math.random() * 1.5 + 0.3;
+  this.vx = (Math.random() - 0.5) * 0.3;
+  this.vy = (Math.random() - 0.5) * 0.3;
+  this.alpha = Math.random() * 0.5 + 0.1;
+  const r = Math.random();
+  this.color = r < 0.4 ? '41,121,255' : r < 0.7 ? '0,229,255' : '124,77,255';
+}
+for (let i = 0; i < 140; i++) particles.push(new Particle());
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+    ctx.fill();
+  });
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(41,121,255,${0.05 * (1 - dist/100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ========================
+   NAVBAR SCROLL
+======================== */
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  nav.style.background = scrollY > 40 ? 'rgba(5,5,8,0.9)' : 'rgba(5,5,8,0.6)';
+});
+
+/* ========================
+   HAMBURGER MENU
+======================== */
+function toggleMenu() {
+  document.getElementById('nav-links').classList.toggle('open');
+}
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('nav-links').classList.remove('open'));
+});
+
+/* ========================
+   SCROLL REVEAL
+======================== */
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); } });
+}, { threshold: 0.12 });
+reveals.forEach(r => observer.observe(r));
+
+/* ========================
+   OPTION CARDS
+======================== */
+function selectOption(el) {
+  const group = el.dataset.group;
+  document.querySelectorAll(`.option-card[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ========================
+   SAVE PREFERENCES
+======================== */
+function savePreferences() {
+  const name = document.getElementById('user-name').value.trim();
+  const lang = document.getElementById('primary-lang').value;
+  const accent = document.getElementById('accent-pref').value;
+  const voice = document.querySelector('.option-card.active[data-group="voice"]')?.dataset.val || 'neutra';
+  const speed = document.querySelector('.option-card.active[data-group="speed"]')?.dataset.val || 'rapida';
+  const consent = document.getElementById('consent').checked;
+  if (!name) { document.getElementById('user-name').style.borderColor = '#ff4444'; return; }
+  localStorage.setItem('echo_prefs', JSON.stringify({ name, lang, accent, voice, speed, consent }));
+  document.getElementById('form-success').style.display = 'block';
+  document.getElementById('user-name').style.borderColor = 'var(--cyan)';
+  updateDashboardUser(name);
+}
+
+function updateDashboardUser(name) {
+  const el = document.getElementById('ai-status-text');
+  if (el && name) el.textContent = `Olá, ${name}! Escutando...`;
+}
+
+/* ========================
+   LANGUAGE CARDS
+======================== */
+const LANGS = [
+  { code: 'pt', name: 'Português', native: 'Português', flag: '🇧🇷' },
+  { code: 'en', name: 'Inglês', native: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Espanhol', native: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Francês', native: 'Français', flag: '🇫🇷' },
+  { code: 'ja', name: 'Japonês', native: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: 'Coreano', native: '한국어', flag: '🇰🇷' },
+  { code: 'de', name: 'Alemão', native: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', native: 'Italiano', flag: '🇮🇹' },
+  { code: 'ru', name: 'Russo', native: 'Русский', flag: '🇷🇺' },
+  { code: 'zh', name: 'Chinês', native: '中文', flag: '🇨🇳' },
+];
+let selectedLangs = JSON.parse(localStorage.getItem('echo_langs') || '["pt","en"]');
+
+function renderLangGrid() {
+  const grid = document.querySelector('.lang-grid');
+  grid.innerHTML = '';
+  LANGS.forEach(lang => {
+    const div = document.createElement('div');
+    div.className = 'lang-card' + (selectedLangs.includes(lang.code) ? ' selected' : '');
+    div.innerHTML = `<div class="lang-flag">${lang.flag}</div><div class="lang-name">${lang.name}</div><div class="lang-native">${lang.native}</div>`;
+    div.addEventListener('click', () => toggleLang(lang.code, div));
+    grid.appendChild(div);
+  });
+}
+function toggleLang(code, el) {
+  if (selectedLangs.includes(code)) {
+    selectedLangs = selectedLangs.filter(c => c !== code);
+    el.classList.remove('selected');
+  } else {
+    selectedLangs.push(code);
+    el.classList.add('selected');
+  }
+}
+function saveLanguages() {
+  localStorage.setItem('echo_langs', JSON.stringify(selectedLangs));
+  const notice = document.getElementById('lang-save-notice');
+  notice.textContent = `✓ ${selectedLangs.length} idioma(s) salvos com sucesso!`;
+  notice.style.color = 'var(--cyan)';
+}
+renderLangGrid();
+
+/* ========================
+   WAVEFORM
+======================== */
+const waveform = document.getElementById('waveform');
+for (let i = 0; i < 28; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  bar.style.animationDelay = (Math.random() * 1.2) + 's';
+  bar.style.height = (Math.random() * 20 + 8) + 'px';
+  waveform.appendChild(bar);
+}
+
+/* ========================
+   AI STATUS CYCLE
+======================== */
+const statuses = [
+  'Escutando áudio em tempo real...',
+  'Processando fala detectada...',
+  'Traduzindo para Português...',
+  'Aprendendo nova expressão...',
+  'Modelo neural atualizado.',
+  'Aguardando próxima fala...',
+];
+let statusIdx = 0;
+setInterval(() => {
+  statusIdx = (statusIdx + 1) % statuses.length;
+  const el = document.getElementById('ai-status-text');
+  if (el) { el.style.opacity = '0'; setTimeout(() => { el.textContent = statuses[statusIdx]; el.style.opacity = '1'; }, 300); }
+  el && (el.style.transition = 'opacity 0.3s');
+}, 2800);
+
+/* ========================
+   TRANSLATION COUNTER
+======================== */
+let tradCount = 0;
+function bumpTrad() { tradCount++; document.getElementById('stat-traducoes').textContent = tradCount; }
+
+/* ========================
+   HISTORY
+======================== */
+const SAMPLE_HISTORY = [
+  { from: 'EN', orig: 'That movie was absolutely lit!', trans: 'Aquele filme foi incrível demais!' },
+  { from: 'ES', orig: '¿Qué onda, bro?', trans: 'E aí, cara? Tudo bem?' },
+  { from: 'JA', orig: 'それ、マジでクソだわ', trans: 'Isso é uma droga mesmo (linguagem informal)' },
+  { from: 'KO', orig: '완전 개꿀이잖아!', trans: 'Que moleza total! Que sorte enorme!' },
+  { from: 'EN', orig: 'No cap, that was cringe.', trans: 'Sério, isso foi constrangedor.' },
+];
+let historyItems = [...SAMPLE_HISTORY];
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  historyItems.slice().reverse().forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.style.animationDelay = (i * 0.06) + 's';
+    div.innerHTML = `<div class="history-lang">${item.from}</div><div><div class="history-text">${item.orig}</div><div class="history-translation">→ ${item.trans}</div></div>`;
+    list.appendChild(div);
+  });
+}
+function clearHistory() { historyItems = []; renderHistory(); }
+renderHistory();
+
+// Auto-add history items periodically
+const NEW_LINES = [
+  { from: 'FR', orig: 'C\'est trop stylé, mec!', trans: 'Que estilo, cara!' },
+  { from: 'DE', orig: 'Alter, das ist megakrass!', trans: 'Cara, isso é demais!' },
+  { from: 'EN', orig: 'She slays every day.', trans: 'Ela arrasa todo dia.' },
+  { from: 'PT', orig: 'Que sinistro, mano!', trans: 'That\'s so cool, dude!' },
+];
+let newLineIdx = 0;
+setInterval(() => {
+  const item = NEW_LINES[newLineIdx % NEW_LINES.length];
+  historyItems.push(item);
+  if (historyItems.length > 14) historyItems.shift();
+  renderHistory();
+  bumpTrad();
+  newLineIdx++;
+}, 4500);
+
+/* ========================
+   LANG SWAP
+======================== */
+const LANG_PAIRS = [
+  { detected: 'Inglês', detectedFlag: '🇺🇸', translated: 'Português', translatedFlag: '🇧🇷' },
+  { detected: 'Japonês', detectedFlag: '🇯🇵', translated: 'Português', translatedFlag: '🇧🇷' },
+  { detected: 'Espanhol', detectedFlag: '🇪🇸', translated: 'Inglês', translatedFlag: '🇺🇸' },
+  { detected: 'Coreano', detectedFlag: '🇰🇷', translated: 'Português', translatedFlag: '🇧🇷' },
+];
+let pairIdx = 0;
+function swapLangs() {
+  pairIdx = (pairIdx + 1) % LANG_PAIRS.length;
+  const p = LANG_PAIRS[pairIdx];
+  document.getElementById('detected-lang').textContent = p.detected;
+  document.getElementById('translated-lang').textContent = p.translated;
+}
+setInterval(() => {
+  pairIdx = (pairIdx + 1) % LANG_PAIRS.length;
+  const p = LANG_PAIRS[pairIdx];
+  const d = document.getElementById('detected-lang');
+  const t = document.getElementById('translated-lang');
+  if (d && t) { d.style.opacity='0'; t.style.opacity='0'; setTimeout(()=>{ d.textContent=p.detected; t.textContent=p.translated; d.style.opacity='1'; t.style.opacity='1'; },350); }
+  d && (d.style.transition='opacity 0.35s'); t && (t.style.transition='opacity 0.35s');
+}, 5000);
+
+/* ========================
+   SLANG DATA
+======================== */
+const SLANGS = [
+  { word: 'mano', meaning: 'forma carinhosa de chamar alguém', lang: 'PT-BR', freq: 'Alta' },
+  { word: 'top', meaning: 'excelente, de qualidade', lang: 'PT-BR', freq: 'Alta' },
+  { word: 'cringe', meaning: 'constrangedor, cafona', lang: 'EN/PT', freq: 'Média' },
+  { word: 'slk', meaning: 'tranquilo, sem problemas', lang: 'PT-BR', freq: 'Alta' },
+  { word: 'bro', meaning: 'amigo, parceiro', lang: 'EN', freq: 'Alta' },
+  { word: 'lit', meaning: 'incrível, animado', lang: 'EN', freq: 'Média' },
+  { word: 'sinistro', meaning: 'muito bom, impressionante', lang: 'PT-BR', freq: 'Média' },
+  { word: 'no cap', meaning: 'sem mentira, sério', lang: 'EN', freq: 'Alta' },
+  { word: 'slay', meaning: 'arrasar, se destacar', lang: 'EN', freq: 'Alta' },
+  { word: '개꿀', meaning: 'super fácil / sorte grande', lang: 'KO', freq: 'Baixa' },
+  { word: 'alter', meaning: 'cara (exclamação)', lang: 'DE', freq: 'Baixa' },
+  { word: 'mec', meaning: 'cara, amigo (informal)', lang: 'FR', freq: 'Baixa' },
+];
+
+function renderSlangs() {
+  const list = document.getElementById('slang-list');
+  list.innerHTML = '';
+  SLANGS.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'slang-item';
+    div.style.animationDelay = (i * 0.05) + 's';
+    div.innerHTML = `<div><div class="slang-word">"${s.word}"</div><div class="slang-meaning">${s.meaning}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="slang-badge">${s.lang}</span><span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--white-dim);">Freq: ${s.freq}</span></div>`;
+    list.appendChild(div);
+  });
+}
+renderSlangs();
+
+/* ========================
+   PHRASE FEED
+======================== */
+const PHRASES = [
+  { text: '"Cara, essa comida tá <span>sinistro</span> demais!"', context: 'Contexto: aprovação positiva' },
+  { text: '"No <span>cap</span>, that party was fire."', context: 'Gíria: afirmação de verdade' },
+  { text: '"Ela <span>slayou</span> muito hoje!"', context: 'Hibridismo PT+EN detectado' },
+  { text: '"Bora lá, <span>mano</span>. Tô te esperando."', context: 'Vocativo informal BR' },
+  { text: '"<span>Que onda</span>, todo mundo sumiu?"', context: 'Expressão casual MX/AR' },
+];
+let phraseIdx = 0;
+function renderPhrases() {
+  const feed = document.getElementById('phrase-feed');
+  const shown = PHRASES.slice(phraseIdx, phraseIdx + 3);
+  feed.innerHTML = '';
+  shown.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'phrase-item';
+    div.style.animationDelay = (i * 0.1) + 's';
+    div.innerHTML = `${p.text}<div style="font-size:0.7rem;color:var(--blue-bright);margin-top:4px;font-family:var(--font-mono);">${p.context}</div>`;
+    feed.appendChild(div);
+  });
+}
+renderPhrases();
+setInterval(() => { phraseIdx = (phraseIdx + 1) % PHRASES.length; renderPhrases(); }, 3800);
+
+/* ========================
+   LOAD SAVED PREFS
+======================== */
+window.addEventListener('load', () => {
+  const prefs = JSON.parse(localStorage.getItem('echo_prefs') || 'null');
+  if (prefs) {
+    if (prefs.name) { document.getElementById('user-name').value = prefs.name; updateDashboardUser(prefs.name); }
+    if (prefs.lang) document.getElementById('primary-lang').value = prefs.lang;
+    if (prefs.accent) document.getElementById('accent-pref').value = prefs.accent;
+    if (prefs.voice) {
+      document.querySelectorAll('.option-card[data-group="voice"]').forEach(c => { c.classList.toggle('active', c.dataset.val === prefs.voice); });
+    }
+    if (prefs.speed) {
+      document.querySelectorAll('.option-card[data-group="speed"]').forEach(c => { c.classList.toggle('active', c.dataset.val === prefs.speed); });
+    }
+    if (!prefs.consent) document.getElementById('consent').checked = false;
+  }
+});
+</script>
+</body>
+</html>
